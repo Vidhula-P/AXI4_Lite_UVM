@@ -1,4 +1,4 @@
-interface axi4_lite_slave_interface(input ACLK);
+interface axi_interface(input ACLK);
   parameter ADDRESS    = 32;
   parameter DATA_WIDTH = 32;
   

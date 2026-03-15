@@ -1,1 +1,8 @@
 `include "interface.sv"
+`include "transaction.sv"
+`include "sequence.sv"
+`include "driver.sv"
+`include "monitor.sv"
+`include "agent.sv"
+`include "environment.sv"
+`include "test.sv"

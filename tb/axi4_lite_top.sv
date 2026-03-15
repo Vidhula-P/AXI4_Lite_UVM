@@ -1,3 +1,5 @@
+import uvm_pkg::*;
+`include "uvm_macros.svh"
 `include "include_files.sv"
 
 module axi4_lite_top;
@@ -5,20 +7,20 @@ module axi4_lite_top;
   parameter DATA_WIDTH = 32;
   parameter ADDRESS = 32;
   
-  logic clk, read_s, write_s;
-  logic [ADDRESS-1:0]    address;
-  logic [DATA_WIDTH-1:0] W_data;
+  bit clk, read_s, write_s;
+  bit [ADDRESS-1:0]    address;
+  bit [DATA_WIDTH-1:0] W_data;
 
-  logic  M_ARREADY,M_ARVALID,M_RREADY,M_AWVALID,M_BREADY,M_WVALID;
-  logic [ADDRESS-1:0]M_ARADDR,M_AWADDR;
-  logic [DATA_WIDTH-1:0]M_WDATA;
-  logic [3:0]M_WSTRB;
+  bit  M_ARREADY,M_ARVALID,M_RREADY,M_AWVALID,M_BREADY,M_WVALID;
+  bit [ADDRESS-1:0]M_ARADDR,M_AWADDR;
+  bit [DATA_WIDTH-1:0]M_WDATA;
+  bit [3:0]M_WSTRB;
   
   // interface to AXI4-Lite slave
-  axi4_lite_slave_interface intf(.ACLK(clk));
+  axi_interface intf(.ACLK(clk));
 
   // DUT instantiation
-  axi4_lite_slave u_axi4_lite_slave0
+  axi4_lite_slave dut
   (
     .ACLK(clk),
     .ARESETN(intf.ARESETN),
@@ -41,10 +43,6 @@ module axi4_lite_top;
     .S_BREADY(intf.S_BREADY)
   );
   
-  // output signals
-  logic [DATA_WIDTH-1:0] output_rdata;
-  logic            [1:0] output_rresp;
-  
   // start global clock
   initial clk = 0;
   always #5 clk = ~clk;
@@ -61,49 +59,8 @@ module axi4_lite_top;
   end
   
   initial begin
-    @(negedge intf.ARESETN); // wait till reset deasserted
-    
-    // write a word
-    // write address, data channel
-    $display("Waiting for AW and W ready");
-    intf.S_AWADDR = 32'h0000_0001;
-    intf.S_WDATA = 32'h1234_abcd;
-    intf.S_WSTRB = 4'b1111;
-    intf.S_AWVALID = 1'b1;
-    intf.S_WVALID = 1'b1;
-    wait (intf.S_AWREADY && intf.S_WREADY);
-    $display("AW, W ready");
-    @(posedge clk);
-    intf.S_AWVALID = 1'b0;
-    intf.S_WVALID = 1'b0;
-    // write response channel
-    $display("Waiting for B valid");
-    intf.S_BREADY = 1'b1;
-    wait(intf.S_BVALID);
-    $display("B valid");
-    $display("S_BRESP = %h", intf.S_BRESP); // always 0
-    @(posedge clk) intf.S_BREADY = 1'b0;
-    repeat(5) @(posedge clk);
-    
-    // read written word
-    // read address channel
-    $display("Waiting for AR ready");
-    intf.S_ARADDR = 32'h0000_0001;
-    intf.S_ARVALID = 1'b1;
-    wait (intf.S_ARREADY);
-    @(posedge clk) intf.S_ARVALID = 1'b0;
-    $display("AR ready");
-    // read data channel
-    $display("Waiting for R ready");
-    intf.S_RREADY = 1'b1;
-    wait(intf.S_RVALID);
-    $display("R ready");
-    output_rdata = intf.S_RDATA;
-    output_rresp = intf.S_RRESP;
-    @(posedge clk) intf.S_RREADY = 1'b0;
-    $display("S_RDATA = %h", output_rdata); // expecting 1234_abcd
-    $display("S_RRESP = %h", output_rresp); // always 0
-    repeat(5) @(posedge clk);
+    uvm_config_db#(virtual axi_interface)::set(null,"*","vif",intf);
+    run_test("test_1");
   end
   
   // wave file
