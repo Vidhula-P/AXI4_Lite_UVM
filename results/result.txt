@@ -1,0 +1,13 @@
+Initial testbench
+
+Waiting for AW and W ready
+AW, W ready
+Waiting for B valid
+B valid
+S_BRESP = 0
+Waiting for AR ready
+AR ready
+Waiting for R ready
+R ready
+S_RDATA = 1234abcd
+S_RRESP = 0
